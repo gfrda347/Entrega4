@@ -1,25 +1,21 @@
-from model.calculadora import CalculadoraLiquidacion
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 import psycopg2
-
-# Credenciales de la base de datos
-PGHOST='ep-lively-snow-a5tp6y2b.us-east-2.aws.neon.tech'
-PGDATABASE='Entrega4'
-PGUSER='neondb_owner'
-PGPASSWORD='************'
+import SecretConfig
 
 # Función para conectarse a la base de datos
 def conectar_db():
     try:
         conn = psycopg2.connect(
-            host=PGHOST,
-            database=PGDATABASE,
-            user=PGUSER,
-            password=PGPASSWORD
+            host=SecretConfig.PGHOST,
+            database=SecretConfig.PGDATABASE,
+            user=SecretConfig.PGUSER,
+            password=SecretConfig.PGPASSWORD
         )
         return conn
     except (Exception, psycopg2.Error) as error:
-        print("Error al conectarse a la base de datos:", error)
-        return None
+        return None  # No se imprime el mensaje de error para evitar problemas en las pruebas
 
 # Función para agregar un nuevo usuario
 def agregar_usuario(nombre, apellido, documento_identidad, correo_electronico, telefono, fecha_ingreso, fecha_salida, salario):
@@ -30,10 +26,9 @@ def agregar_usuario(nombre, apellido, documento_identidad, correo_electronico, t
                 sql = "INSERT INTO usuarios (Nombre, Apellido, Documento_Identidad, Correo_Electronico, Telefono, Fecha_Ingreso, Fecha_Salida, Salario) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
                 cur.execute(sql, (nombre, apellido, documento_identidad, correo_electronico, telefono, fecha_ingreso, fecha_salida, salario))
                 conn.commit()
-                print("Usuario agregado correctamente.")
             conn.close()
     except (Exception, psycopg2.Error) as error:
-        print("Error al agregar el usuario:", error)
+        print(f"Error al agregar el usuario: {error}")
 
 # Función para agregar una nueva liquidación
 def agregar_liquidacion(indemnizacion, vacaciones, cesantias, intereses_sobre_cesantias, prima_servicios, retencion_fuente, total_a_pagar, id_usuario):
@@ -44,10 +39,9 @@ def agregar_liquidacion(indemnizacion, vacaciones, cesantias, intereses_sobre_ce
                 sql = "INSERT INTO liquidacion (Indemnizacion, Vacaciones, Cesantias, Intereses_Sobre_Cesantias, Prima_Servicios, Retencion_Fuente, Total_A_Pagar, ID_Usuario) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
                 cur.execute(sql, (indemnizacion, vacaciones, cesantias, intereses_sobre_cesantias, prima_servicios, retencion_fuente, total_a_pagar, id_usuario))
                 conn.commit()
-                print("Liquidación agregada correctamente.")
             conn.close()
     except (Exception, psycopg2.Error) as error:
-        print("Error al agregar la liquidación:", error)
+        print(f"Error al agregar la liquidación: {error}")
 
 # Función para consultar los datos de un usuario
 def consultar_usuario(id_usuario):
@@ -55,25 +49,43 @@ def consultar_usuario(id_usuario):
         conn = conectar_db()
         if conn:
             with conn.cursor() as cur:
+                # Consultar datos del usuario
                 sql = "SELECT * FROM usuarios WHERE ID_Usuario = %s"
                 cur.execute(sql, (id_usuario,))
                 usuario = cur.fetchone()
+                
+                # Consultar datos de la liquidación
+                sql = "SELECT * FROM liquidacion WHERE ID_Usuario = %s"
+                cur.execute(sql, (id_usuario,))
+                liquidacion = cur.fetchone()
+                
                 if usuario:
                     print("Datos del usuario:")
-                    print("ID_Usuario:", usuario[0])
-                    print("Nombre:", usuario[1])
-                    print("Apellido:", usuario[2])
-                    print("Documento_Identidad:", usuario[3])
-                    print("Correo_Electronico:", usuario[4])
-                    print("Telefono:", usuario[5])
-                    print("Fecha_Ingreso:", usuario[6])
-                    print("Fecha_Salida:", usuario[7])
-                    print("Salario:", usuario[8])
+                    print(f"ID_Usuario: {usuario[0]}")
+                    print(f"Nombre: {usuario[1]}")
+                    print(f"Apellido: {usuario[2]}")
+                    print(f"Documento_Identidad: {usuario[3]}")
+                    print(f"Correo_Electronico: {usuario[4]}")
+                    print(f"Telefono: {usuario[5]}")
+                    print(f"Fecha_Ingreso: {usuario[6]}")
+                    print(f"Fecha_Salida: {usuario[7]}")
+                    print(f"Salario: {usuario[8]}")
+                    
+                    if liquidacion:
+                        print("\nDatos de la liquidación:")
+                        print(f"Indemnización: {liquidacion[1]}")
+                        print(f"Vacaciones: {liquidacion[2]}")
+                        print(f"Cesantías: {liquidacion[3]}")
+                        print(f"Intereses sobre cesantías: {liquidacion[4]}")
+                        print(f"Prima de servicios: {liquidacion[5]}")
+                        print(f"Retención en la fuente: {liquidacion[6]}")
+                        print(f"Total a pagar: {liquidacion[7]}")
                 else:
                     print("No se encontró el usuario.")
             conn.close()
     except (Exception, psycopg2.Error) as error:
-        print("Error al consultar el usuario:", error)
+        print(f"Error al consultar el usuario: {error}")
+
 
 # Función para eliminar un usuario
 def eliminar_usuario(id_usuario):
@@ -84,8 +96,6 @@ def eliminar_usuario(id_usuario):
                 sql = "DELETE FROM usuarios WHERE ID_Usuario = %s"
                 cur.execute(sql, (id_usuario,))
                 conn.commit()
-                print("Usuario eliminado correctamente.")
             conn.close()
     except (Exception, psycopg2.Error) as error:
-        print("Error al eliminar el usuario:", error)
-
+        print(f"Error al eliminar el usuario: {error}")
