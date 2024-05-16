@@ -109,7 +109,6 @@ class TestCalculadoraLiquidacion(unittest.TestCase):
             self.calculadora.calcular_retencion(ingreso_laboral)
 
     def test_total_pagar_negativo_imprimir_resultados(self):
-    # No se puede probar esta situación directamente
         pass
 
     def test_formato_fecha_inicio_invalido(self):

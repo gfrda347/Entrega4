@@ -15,7 +15,7 @@ def conectar_db():
         )
         return conn
     except (Exception, psycopg2.Error) as error:
-        return None  # No se imprime el mensaje de error para evitar problemas en las pruebas
+        return None 
 
 # Función para agregar un nuevo usuario
 def agregar_usuario(nombre, apellido, documento_identidad, correo_electronico, telefono, fecha_ingreso, fecha_salida, salario):
@@ -99,3 +99,16 @@ def eliminar_usuario(id_usuario):
             conn.close()
     except (Exception, psycopg2.Error) as error:
         print(f"Error al eliminar el usuario: {error}")
+
+# Función para eliminar los datos de la tabla de liquidación
+def eliminar_liquidacion(id_usuario):
+    try:
+        conn = conectar_db()
+        if conn:
+            with conn.cursor() as cur:
+                sql = "DELETE FROM liquidacion WHERE ID_Usuario = %s"
+                cur.execute(sql, (id_usuario,))
+                conn.commit()
+            conn.close()
+    except (Exception, psycopg2.Error) as error:
+        print(f"Error al eliminar los datos de liquidación: {error}")

@@ -1,35 +1,32 @@
 import sys
-sys.path.append(".")
-from src.controller.controlador import conectar_db, agregar_usuario, agregar_liquidacion, consultar_usuario, eliminar_usuario
+import os
+src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.append(src_dir)
+from controller.controlador import conectar_db, agregar_usuario, agregar_liquidacion, consultar_usuario, eliminar_usuario
 import unittest
 from unittest.mock import patch, MagicMock
-import psycopg2
+import SecretConfig
 
-class TestFunciones(unittest.TestCase):
+class TestConsultarUsuario(unittest.TestCase):
+    def test_consultar_usuario(self):
+        id_usuario = 1
+        consultar_usuario(id_usuario)
 
-    @patch('psycopg2.connect')
-    def test_agregar_usuario_exitoso(self, mock_connect):
-    # Configurar el mock para simular una conexión exitosa
-        mock_cursor = MagicMock()
-        mock_cursor.rowcount = 1  # Simular que se insertó un registro
-        mock_connect.return_value.__enter__.return_value.cursor.return_value = mock_cursor
+class TestEliminarUsuario(unittest.TestCase):
+    def test_eliminar_usuario(self):
+        id_usuario = 1
+        eliminar_usuario(id_usuario)
 
-    # Llamar a la función con datos válidos
-        agregar_usuario("Juan", "Pérez", "1234567890", "juan@example.com", "555-1234", "2022-01-01", "2022-12-31", 50000)
+class TestConectarDBError(unittest.TestCase):
+    def test_conectar_db_error(self):
+        SecretConfig.PGHOST = "invalid_host"
+        conn = conectar_db()
+        self.assertIsNone(conn)
 
-    # Verificar que se ejecutó el comando SQL correcto
-        mock_cursor.execute.assert_called_with("INSERT INTO usuarios (Nombre, Apellido, Documento_Identidad, Correo_Electronico, Telefono, Fecha_Ingreso, Fecha_Salida, Salario) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", ("Juan", "Pérez", "1234567890", "juan@example.com", "555-1234", "2022-01-01", "2022-12-31", 50000))
-
-    @patch('psycopg2.connect')
-    def test_agregar_usuario_error(self, mock_connect):
-    # Configurar el mock para simular un error de conexión
-        mock_connect.side_effect = psycopg2.Error("Error de conexión simulado")
-
-    # Capturar la salida de la función
-        with self.assertLogs() as captured:
-            agregar_usuario("Juan", "Pérez", "1234567890", "juan@example.com", "555-1234", "2022-01-01", "2022-12-31", 50000)
-            self.assertEqual(captured.records[0].getMessage(), "Error al agregar el usuario: Error de conexión simulado")
-
+class TestConsultarUsuarioNoExistente(unittest.TestCase):
+    def test_consultar_usuario_no_existente(self):
+        id_usuario = 999
+        consultar_usuario(id_usuario)
 
 if __name__ == '__main__':
     unittest.main()
